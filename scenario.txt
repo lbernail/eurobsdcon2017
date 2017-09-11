@@ -1,0 +1,37 @@
+## Control host
+
+# Start Openbsd instance (ami-17110571)
+# Connect
+ssh ec2-user@
+
+# How did my key get there?
+https://github.com/ajacoutot/aws-openbsd/blob/master/ec2-init.sh
+cat /usr/local/libexec/ec2-init
+
+# When is it executed?
+By netstart (before most daemons)
+cat /etc/hostname.xnf0
+
+# What does it do?
+
+Script relies on AWS metadatas:
+ftp -MVo - http://169.254.169.254/latest/meta-data
+
+- Run only at first boot (check instance id: file vs metadata )
+- Create first boot file (/var/db/ec2-init) with instance id
+- Get key from metadata
+- Set hostname from metadata
+- Execute user-data script 
+- Create rc.firsttime script to log ssh keys at next boot 
+- Clean up instance (remove old ssh keys, dhcp leases and conf, old logs)
+
+
+# What permissions do I have?
+does cat /etc/doas.conf
+
+
+# terraform
+pkg_info -Q terraform
+doas pkg_add terraform
+
+
