@@ -1,3 +1,11 @@
+output "consul_ec2_tag" {
+  value = "${var.cluster_name}"
+}
+
+output "consul_instance_profile" {
+  value = "${aws_iam_instance_profile.consul.name}"
+}
+
 output "consul_server_ips" {
   value = ["${aws_instance.consul.*.private_ip}"]
 }
