@@ -1,29 +1,24 @@
-#!/usr/bin/env bash
-set -e
+#!/bin/sh
 
-SERVERS=$(echo ${TF_CONSUL_SERVERS} | tr ',' ' ')
-ROLE=${TF_CONSUL_ROLE}
-ROLE=$${ROLE:-client}
-OPTIONS=${TF_CONSUL_OPTIONS}
-PUBLIC=${TF_CONSUL_PUBLIC}
-PUBLIC=$${PUBLIC:-no}
+hostname ${TF_CONSUL_HOSTNAME}
 
-echo "Configuring consul"
-JOINS=""
-SERVER_COUNT=0
-for address in $SERVERS
-do
-   JOINS="$JOINS -retry-join=$address"
-   SERVER_COUNT=$(( $SERVER_COUNT + 1 ))
-done
+pkg_add consul
 
-CONSUL_OPTIONS="$OPTIONS"
-[ "$ROLE" == "server" ] && CONSUL_OPTIONS="$CONSUL_OPTIONS -server -bootstrap-expect=$SERVER_COUNT"
-[ "$PUBLIC" == "yes" ] && CONSUL_OPTIONS="$CONSUL_OPTIONS -client=0.0.0.0"
-
-cat > /etc/sysconfig/consul <<EOF
-CONSUL_FLAGS="$CONSUL_OPTIONS $JOINS -data-dir=/opt/consul/data"
+cat > /etc/consul.d/config.json <<EOF
+{
+    "bootstrap_expect": ${TF_CONSUL_SERVERS},
+    "server": ${TF_CONSUL_SERVERROLE},
+    "client_addr": "${TF_CONSUL_BIND_IP}",
+    "ui": ${TF_CONSUL_UI},
+    "enable_syslog": true,
+    "data_dir": "/var/consul",
+    "retry_join_ec2" :
+        {
+            "tag_key": "ConsulCluster",
+            "tag_value": "${TF_CONSUL_EC2_TAG}"
+        }
+}
 EOF
 
-systemctl enable consul.service
-systemctl start consul.service
+rcctl enable consul
+rcctl start consul

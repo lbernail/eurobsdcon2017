@@ -107,20 +107,24 @@ resource "aws_instance" "consul" {
   subnet_id              = "${data.terraform_remote_state.vpc.private_subnets[count.index]}"
   vpc_security_group_ids = ["${list(data.terraform_remote_state.vpc.sg_ssh,aws_security_group.consul.id)}"]
   iam_instance_profile   = "${aws_iam_instance_profile.consul.name}"
+  user_data              = "${data.template_file.consul_config.*.rendered[count.index]}"
 
   tags {
-    Name = "${var.cluster_name} ${count.index}"
+    Name          = "${var.cluster_name} ${count.index}"
+    ConsulCluster = "${var.cluster_name}"
   }
 }
 
-#data "template_file" "consul_config" {
-#  template = "${file("${path.module}/files/config_consul.tpl.sh")}"
-#
-#  vars {
-#    TF_CONSUL_SERVERS = "${join(",",var.consul_servers)}"
-#    TF_CONSUL_ROLE    = "server"
-#    TF_CONSUL_OPTIONS = ""
-#    TF_CONSUL_PUBLIC = "yes"
-#  }
-#}
+data "template_file" "consul_config" {
+  count    = "${var.consul_servers}"
+  template = "${file("${path.module}/files/config_consul.tpl.sh")}"
 
+  vars {
+    TF_CONSUL_HOSTNAME   = "${var.cluster_id}${count.index}"
+    TF_CONSUL_SERVERS    = "${var.consul_servers}"
+    TF_CONSUL_SERVERROLE = "true"
+    TF_CONSUL_BIND_IP    = "127.0.0.1"
+    TF_CONSUL_UI         = "false"
+    TF_CONSUL_EC2_TAG    = "${var.cluster_name}"
+  }
+}
