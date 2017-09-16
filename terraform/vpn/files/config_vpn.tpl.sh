@@ -1,5 +1,20 @@
 #!/bin/sh
 
+eip=$(ftp -MVo - http://169.254.169.254/latest/meta-data/public-ipv4)
+
+# Enabling ipsec
+rcctl enable ipsec
+rcctl enable isakmpd
+rcctl set isakmpd flags -K
+
+cat > /etc/ipsec.conf <<EOF
+ike esp from ${TF_VPC_CIDR} to 172.30.0.0/16 \\
+        peer 34.196.141.208 \\
+        srcid $eip \\
+        psk "m8f6xweKU3TsIJgmN4t9z9Uq728mL48Z"
+EOF
+chmod 600 /etc/ipsec.conf
+
 # Consul
 pkg_add consul
 
@@ -50,5 +65,10 @@ rcctl enable consul consul_template
 cat >> /etc/rc.firsttime <<EOF
 echo -n "starting"
 rcctl start consul consul_template
+echo
+echo -n "starting"
+rcctl start isakmpd
+echo
+ipsecctl -f /etc/ipsec.conf
 echo
 EOF

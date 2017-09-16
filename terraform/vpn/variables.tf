@@ -15,3 +15,4 @@ variable "server_type" {
 }
 
 variable "key_name" {}
+variable "eip" {}

@@ -43,5 +43,15 @@ data "template_file" "vpn_config" {
     TF_CONSUL_BIND_IP    = "127.0.0.1"
     TF_CONSUL_UI         = "false"
     TF_CONSUL_EC2_TAG    = "${data.terraform_remote_state.consul.consul_ec2_tag}"
+    TF_VPC_CIDR          = "${data.terraform_remote_state.vpc.vpc_cidr}"
   }
+}
+
+resource "aws_eip_association" "eip_assoc" {
+  instance_id   = "${aws_instance.vpn.id}"
+  allocation_id = "${data.aws_eip.vpn.id}"
+}
+
+data "aws_eip" "vpn" {
+  public_ip = "${var.eip}"
 }
