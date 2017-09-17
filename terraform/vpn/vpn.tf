@@ -44,6 +44,7 @@ data "template_file" "vpn_config" {
     TF_CONSUL_UI         = "false"
     TF_CONSUL_EC2_TAG    = "${data.terraform_remote_state.consul.consul_ec2_tag}"
     TF_VPC_CIDR          = "${data.terraform_remote_state.vpc.vpc_cidr}"
+    TF_EIP               = "${var.eip}"
   }
 }
 

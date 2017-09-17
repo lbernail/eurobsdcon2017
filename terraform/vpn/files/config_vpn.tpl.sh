@@ -1,18 +1,11 @@
 #!/bin/sh
 
-eip=$(ftp -MVo - http://169.254.169.254/latest/meta-data/public-ipv4)
-
 # Enabling ipsec
 rcctl enable ipsec
 rcctl enable isakmpd
 rcctl set isakmpd flags -K
 
-cat > /etc/ipsec.conf <<EOF
-ike esp from ${TF_VPC_CIDR} to 172.30.0.0/16 \\
-        peer 34.196.141.208 \\
-        srcid $eip \\
-        psk "m8f6xweKU3TsIJgmN4t9z9Uq728mL48Z"
-EOF
+touch /etc/ipsec.conf
 chmod 600 /etc/ipsec.conf
 
 # Consul
@@ -40,35 +33,38 @@ EOF
 pkg_add consul-template
 
 cat > /etc/consul-template.d/default.conf << EOF
-consul = "127.0.0.1:8500"
+consul {
+  address = "127.0.0.1:8500"
+}
 
 syslog {
   enabled  = true
-    facility = "DAEMON"
+  facility = "DAEMON"
 }
 
 template {
-  source      = "/etc/consul-template.d/sample.ctmpl"
-  destination = "/etc/consul-template.d/sample.txt"
+  source      = "/etc/consul-template.d/ipsec.ctmpl"
+  destination = "/etc/consul-template.d/ipsec.conf"
+  command     = "ipsecctl -f /etc/ipsec.conf"
 }
 EOF
 
 # Template
-cat > /etc/consul-template.d/sample.ctmpl << EOF
-Hello {{ key_or_default "name" "charlie" -}}
+cat > /etc/consul-template.d/ipsec.ctmpl << 'EOF'
+{{ range tree "vpn" | explode -}}
+ike esp from ${TF_VPC_CIDR} to {{ .cidrblock }} \
+        peer {{ .endpoint }} \
+        srcid ${TF_EIP} \
+        psk "{{ .psk }}"
+{{ end }}
 EOF
-chown _consul-template:_consul-template /etc/consul-template.d/sample.ctmpl
+chown _consul-template:_consul-template /etc/consul-template.d/ipsec.ctmpl
 
 # Enabling and  daemons at first boot
 rcctl enable consul consul_template
 
 cat >> /etc/rc.firsttime <<EOF
 echo -n "starting"
-rcctl start consul consul_template
-echo
-echo -n "starting"
-rcctl start isakmpd
-echo
-ipsecctl -f /etc/ipsec.conf
+rcctl start consul consul_template isakmpd
 echo
 EOF
