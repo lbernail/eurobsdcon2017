@@ -3,6 +3,7 @@ resource "aws_instance" "consulagent" {
   instance_type          = "${var.agent_server_type}"
   key_name               = "${var.key_name}"
   subnet_id              = "${data.terraform_remote_state.vpc.private_subnets[0]}"
+  private_ip             = "${cidrhost(data.terraform_remote_state.vpc.private_subnets_cidr_block[0],var.agent_ip_offset)}"
   vpc_security_group_ids = ["${list(data.terraform_remote_state.vpc.sg_ssh,aws_security_group.consul.id)}"]
   iam_instance_profile   = "${aws_iam_instance_profile.consul.name}"
   user_data              = "${data.template_file.consul_agent_config.rendered}"

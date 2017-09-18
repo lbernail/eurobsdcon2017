@@ -9,6 +9,16 @@ variable "consul_servers" {
   type = "string"
 }
 
+variable "consul_ip_offset" {
+  type = "string"
+  default = 100
+}
+
+variable "agent_ip_offset" {
+  type = "string"
+  default = 200
+}
+
 variable "cluster_name" {
   type    = "string"
   default = "Consul"

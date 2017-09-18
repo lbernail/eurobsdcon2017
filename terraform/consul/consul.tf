@@ -104,7 +104,9 @@ resource "aws_instance" "consul" {
   count                  = "${var.consul_servers}"
   instance_type          = "${var.consul_server_type}"
   key_name               = "${var.key_name}"
-  subnet_id              = "${data.terraform_remote_state.vpc.private_subnets[count.index]}"
+  subnet_id              = "${data.terraform_remote_state.vpc.private_subnets[count.index % length(data.terraform_remote_state.vpc.azs)]}"
+  private_ip             = "${cidrhost(data.terraform_remote_state.vpc.private_subnets_cidr_block[count.index % length(data.terraform_remote_state.vpc.azs)],
+                                       var.consul_ip_offset + count.index / length(data.terraform_remote_state.vpc.azs))}"
   vpc_security_group_ids = ["${list(data.terraform_remote_state.vpc.sg_ssh,aws_security_group.consul.id)}"]
   iam_instance_profile   = "${aws_iam_instance_profile.consul.name}"
   user_data              = "${data.template_file.consul_config.*.rendered[count.index]}"
