@@ -14,5 +14,10 @@ variable "server_type" {
   default = "t2.micro"
 }
 
+variable "ip_offset" {
+  type    = "string"
+  default = "10"
+}
+
 variable "key_name" {}
 variable "eip" {}

@@ -24,6 +24,7 @@ resource "aws_instance" "vpn" {
   instance_type          = "${var.server_type}"
   key_name               = "${var.key_name}"
   subnet_id              = "${data.terraform_remote_state.vpc.public_subnets[0]}"
+  private_ip             = "${cidrhost(data.terraform_remote_state.vpc.public_subnets_cidr_block[0],var.ip_offset)}"
   vpc_security_group_ids = ["${list(data.terraform_remote_state.vpc.sg_ssh,data.terraform_remote_state.consul.sg_consul_server)}"]
   iam_instance_profile   = "${data.terraform_remote_state.consul.consul_instance_profile}"
   user_data              = "${data.template_file.vpn_config.rendered}"
