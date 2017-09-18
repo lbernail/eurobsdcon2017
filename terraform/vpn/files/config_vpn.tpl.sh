@@ -4,9 +4,7 @@
 rcctl enable ipsec
 rcctl enable isakmpd
 rcctl set isakmpd flags -K
-
-touch /etc/ipsec.conf
-chmod 600 /etc/ipsec.conf
+install -m 0600 /dev/null /etc/ipsec.conf
 
 # Consul
 pkg_add consul
@@ -68,12 +66,12 @@ ike esp from ${TF_VPC_CIDR} to {{ .cidrblock }} \
 EOF
 chown _consul-template:_consul-template /etc/consul-template.d/ipsec.ctmpl
 
-# Enabling and  daemons at first boot
+# Enabling and starting daemons at first boot
 rcctl enable consul consul_template
 rcctl set consul_template user root
 
 cat >> /etc/rc.firsttime <<EOF
 echo -n "starting"
-rcctl start consul consul_template isakmpd
+rcctl start isakmpd consul consul_template
 echo
 EOF
