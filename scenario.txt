@@ -43,3 +43,43 @@ Show instances in that VPC
 cd ../consul
 terraform init
 terraform apply
+# check for instance profile bug
+
+ssh ec2-user@54.76.11.26 -L 8500:10.0.128.200:8500
+Go to UI
+
+Connect to a consul instance
+ssh 10.0.128.100
+consul members
+
+# Consul configuration
+ftp -MVo - http://169.254.169.254/latest/user-data
+
+Show userdata, tags and role in AWS console
+
+
+# Build VPN
+terraform init
+terraform apply
+
+# Connect
+ssh 10.0.0.10
+ftp -MVo - http://169.254.169.254/latest/user-data
+
+consul members
+rcctl check consul consul_template
+cat /etc/consul-template.d/default.conf
+doas cat /etc/ipsec.conf
+
+# Build VPN
+connect to us-east, launch instance with ICMP sg
+show VPN configuration
+Download configuration
+
+# Test ping
+ping 172.30.0.x
+
+# Configure keys in consul
+look at ipsec conf
+retry ping
+
