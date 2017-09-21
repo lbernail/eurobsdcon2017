@@ -1,6 +1,6 @@
 resource "aws_iam_instance_profile" "consul" {
   name = "${var.cluster_id}_profile"
-  role = "${aws_iam_role.consul.name}"
+  roles = [ "${aws_iam_role.consul.name}" ]
 }
 
 resource "aws_iam_role" "consul" {
