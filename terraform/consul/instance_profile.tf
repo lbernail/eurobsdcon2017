@@ -1,6 +1,9 @@
 resource "aws_iam_instance_profile" "consul" {
   name = "${var.cluster_id}_profile"
   roles = [ "${aws_iam_role.consul.name}" ]
+  provisioner "local-exec" {
+    command = "sleep 10" # wait for instance profile to be available
+  }
 }
 
 resource "aws_iam_role" "consul" {
